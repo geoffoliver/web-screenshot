@@ -17,12 +17,14 @@ function handleRequest(request, response){
 	var dom = url.parse(req.query.url),
 		savePath = __dirname+'/screenshots/'+dom.host+'.jpg',
 		expire = new Date().getTime() - 864000;
+	
+	console.log('Screenshot requested:', req.query.url);
 
 	fs.access(savePath, fs.F_OK, function(err){
 		if(!err){
 			var fileStat = fs.statSync(savePath);
 			if(fileStat && fileStat.isFile() && new Date(fileStat.ctime).getTime() > expire){
-				console.log('found file. using cached version');
+				console.log('Found cached screenshot');
 				var img = fs.readFileSync(savePath);
 				response.writeHead(200, {'Content-Type': 'image/jpg' });
 				response.end(img, 'binary');
@@ -30,30 +32,35 @@ function handleRequest(request, response){
 			}
 		}
 		
-		console.log('creating new screenshot');
+		console.log('Creating new screenshot');
 		phantom.create("--web-security=no", "--ignore-ssl-errors=yes", "--ssl-protocol=any", function(ph){
 			ph.createPage(function(page){
 				page.set('viewportSize', {width:1280,height:900}, function(){
 					page.set('clipRect', {top:0,left:0,width:1280,height:900}, function(){
-						console.log('Requesting:', req.query.url);
 						page.open(req.query.url, function(status){
-							console.log('status', status);
+							console.log('Request status:', status);
 							if(status === 'fail'){
 								response.end();
 								ph.exit();
 								return;
 							}
 							page.render(savePath, function(d){
-								console.log('rendered');
+								console.log('Page Rendered');
 								im.resize({
 									width: 800,
 									srcPath: savePath,
 									dstPath: savePath,
-									stripe: true
-								}, function(){
-									var img = fs.readFileSync(savePath);
-									response.writeHead(200, {'Content-Type': 'image/jpg' });
-									response.end(img, 'binary');
+									strip: true,
+									quality: 0.8,
+									progressive: true
+								}, function(err){
+									if(err){
+										response.end();
+									}else{
+										var img = fs.readFileSync(savePath);
+										response.writeHead(200, {'Content-Type': 'image/jpg' });
+										response.end(img, 'binary');
+									}
 									ph.exit();
 								});
 							});
