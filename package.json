@@ -1,0 +1,9 @@
+{
+  "name": "web-screenshot",
+  "version": "1.0.0",
+  "repository": "https://github.com/plan8studios/web-screenshot",
+  "dependencies": {
+    "imagemagick": "^0.1.3",
+    "phantom": "^0.8.4"
+  }
+}
