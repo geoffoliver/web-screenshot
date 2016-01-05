@@ -48,7 +48,7 @@ function handleRequest(request, response){
 								page.render(savePath, function(d){
 									console.log('Page Rendered');
 									im.resize({
-										width: 800,
+										width: 300,
 										srcPath: savePath,
 										dstPath: savePath,
 										strip: true,
