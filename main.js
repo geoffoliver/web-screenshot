@@ -37,31 +37,33 @@ function handleRequest(request, response){
 			ph.createPage(function(page){
 				page.set('viewportSize', {width:1280,height:900}, function(){
 					page.set('clipRect', {top:0,left:0,width:1280,height:900}, function(){
-						page.open(req.query.url, function(status){
-							console.log('Request status:', status);
-							if(status === 'fail'){
-								response.end();
-								ph.exit();
-								return;
-							}
-							page.render(savePath, function(d){
-								console.log('Page Rendered');
-								im.resize({
-									width: 800,
-									srcPath: savePath,
-									dstPath: savePath,
-									strip: true,
-									quality: 0.8,
-									progressive: true
-								}, function(err){
-									if(err){
-										response.end();
-									}else{
-										var img = fs.readFileSync(savePath);
-										response.writeHead(200, {'Content-Type': 'image/jpg' });
-										response.end(img, 'binary');
-									}
+						page.set('settings.userAgent', 'Plan8 Screenshot Bot/1.0 (NodeJS, PhantomJS) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.97 Safari/537.11', function(){
+							page.open(req.query.url, function(status){
+								console.log('Request status:', status);
+								if(status === 'fail'){
+									response.end();
 									ph.exit();
+									return;
+								}
+								page.render(savePath, function(d){
+									console.log('Page Rendered');
+									im.resize({
+										width: 800,
+										srcPath: savePath,
+										dstPath: savePath,
+										strip: true,
+										quality: 0.8,
+										progressive: true
+									}, function(err){
+										if(err){
+											response.end();
+										}else{
+											var img = fs.readFileSync(savePath);
+											response.writeHead(200, {'Content-Type': 'image/jpg' });
+											response.end(img, 'binary');
+										}
+										ph.exit();
+									});
 								});
 							});
 						});
