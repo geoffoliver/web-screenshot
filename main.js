@@ -6,11 +6,13 @@ var im = require('imagemagick');
 
 function handleRequest(request, response){
 	if(!request.url){
+		response.end();
 		return;
 	}
 
 	var req = url.parse(request.url, true);
 	if(!req.query || !req.query.url){
+		response.end();
 		return;
 	}
 
