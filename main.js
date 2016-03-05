@@ -7,6 +7,8 @@ var im = require('imagemagick');
 
 function scrapePage(url, response){
 	var reqObj = http;
+	var ended = false;
+
 	if(url.indexOf('https:') > -1){
 		reqObj = https;
 	}
@@ -21,12 +23,17 @@ function scrapePage(url, response){
 		}else{
 			response.writeHead(200, {'Content-Type': 'text/html' });
 			res.on('end', function(){
+				ended = true;
 				response.end();
 			});
 			res.on('data', function(d){
-				response.write(d, function(err){
-					response.end();
-				});
+				if(!ended){
+					response.write(d, function(err){
+						ended = true;
+						console.log('Error', err);
+						response.end();
+					});
+				}
 			});
 		}
 		return true;
