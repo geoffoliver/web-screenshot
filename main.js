@@ -1,8 +1,37 @@
 var http = require('http');
+var https = require('https');
 var url = require('url');
 var fs = require('fs');
 var phantom = require('phantom');
 var im = require('imagemagick');
+
+function scrapePage(url, response){
+	var reqObj = http;
+	if(url.indexOf('https:') > -1){
+		reqObj = https;
+	}
+	reqObj.get(url, function(res){
+		if(res.statusCode !== 200){
+			if(res.statusCode >= 300 && res.statusCode < 400 && res.headers.location){
+				return scrapePage(res.headers.location, response);
+			}else{
+				response.writeHead(res.statusCode);
+				response.end();
+			}
+		}else{
+			response.writeHead(200, {'Content-Type': 'text/html' });
+			res.on('end', function(){
+				response.end();
+			});
+			res.on('data', function(d){
+				response.write(d, function(err){
+					response.end();
+				});
+			});
+		}
+		return true;
+	});
+}
 
 function handleRequest(request, response){
 	if(!request.url){
@@ -28,19 +57,7 @@ function handleRequest(request, response){
 	switch(action){
 		case 'scrape':
 			console.log('Scrape requested:', req.query.url);
-			http.get(req.query.url, function(res){
-				if(res.statusCode !== 200){
-					response.writeHead(res.statusCode);
-					response.end();
-				}
-				response.writeHead(200, {'Content-Type': 'text/html' });
-				res.on('data', function(d){
-					response.write(d);
-				});
-				res.on('end', function(){
-					response.end();
-				});
-			});
+			scrapePage(req.query.url, response);
 			break;
 		case 'screenshot':
 		default:
