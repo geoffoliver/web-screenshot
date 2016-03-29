@@ -88,6 +88,10 @@ function handleRequest(request, response){
 				console.log('Creating new screenshot');
 				phantom.create("--web-security=no", "--ignore-ssl-errors=yes", "--ssl-protocol=any", function(ph){
 					ph.createPage(function(page){
+						page.onResourceTimeout = function(){
+							response.writeHead(500);
+							response.end();
+						};
 						page.set('resourceTimeout', 5000, function(){
 							page.set('viewportSize', {width:1280,height:900}, function(){
 								page.set('clipRect', {top:0,left:0,width:1280,height:900}, function(){
